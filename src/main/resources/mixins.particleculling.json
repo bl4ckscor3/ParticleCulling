@@ -1,0 +1,11 @@
+{
+    "required": true,
+    "package": "bl4ckscor3.mod.particleculling.mixin",
+    "refmap": "mixins.particleculling.refmap.json",
+    "minVersion": "0.7.3",
+    "compatibilityLevel": "JAVA_8",
+    "mixins": [
+        "MixinEntityRenderer",
+        "MixinParticleManager"
+    ]
+}
