@@ -24,7 +24,7 @@ public class CullHook
 				{
 					IBlockState state = entity.world.getBlockState(result.getBlockPos());
 
-					if(Configuration.cullBehindGlass || state.isFullCube())
+					if(Configuration.cullBehindGlass || (state.isFullCube() && state.isOpaqueCube()))
 						return;
 				}
 			}
