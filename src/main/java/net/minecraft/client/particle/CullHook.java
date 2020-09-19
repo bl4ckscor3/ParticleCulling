@@ -6,6 +6,8 @@ import bl4ckscor3.mod.particleculling.ParticleCulling.Configuration;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
@@ -14,7 +16,19 @@ public class CullHook
 {
 	public static void renderParticle(Particle particle, BufferBuilder buffer, Entity entity, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ)
 	{
-		if(((CameraHolder)Minecraft.getMinecraft().entityRenderer).getCamera().isBoundingBoxInFrustum(particle.getBoundingBox()))
+		ICamera camera = ((CameraHolder)Minecraft.getMinecraft().entityRenderer).getCamera();
+
+		if(camera == null)
+		{
+			double x = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks;
+			double y = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks;
+			double z = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks;
+
+			camera = new Frustum();
+			camera.setPosition(x, y, z);
+		}
+
+		if(camera.isBoundingBoxInFrustum(particle.getBoundingBox()))
 		{
 			if(Configuration.cullBehindBlocks)
 			{
