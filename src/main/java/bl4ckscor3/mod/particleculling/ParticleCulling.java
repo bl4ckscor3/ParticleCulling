@@ -8,7 +8,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-@Mod(modid=ParticleCulling.MODID, name="Particle Culling", version="1.0")
+@Mod(modid=ParticleCulling.MODID, name="Particle Culling", version="1.1")
 @EventBusSubscriber(modid=ParticleCulling.MODID)
 public class ParticleCulling
 {
@@ -20,8 +20,11 @@ public class ParticleCulling
 		@Comment("Set this to false if you do not want to cull particles that technically are in the player's view but are obstructed by blocks.")
 		public static boolean cullBehindBlocks = true;
 
-		@Comment("Set this to true if you don't want particles to be rendered behind glass and other transparent blocks. This does nothing if \"cullBehindBlock\" is turned off.")
+		@Comment("Set this to true if you don't want particles to be rendered behind glass and other transparent blocks. This does nothing if \"cullBehindBlocks\" is turned off.")
 		public static boolean cullBehindGlass = false;
+
+		@Comment("Set this to false to disable particle culling while being in spectator mode. This is useful to take screenshots without having particles removed.")
+		public static boolean cullInSpectator = true;
 	}
 
 	@SubscribeEvent

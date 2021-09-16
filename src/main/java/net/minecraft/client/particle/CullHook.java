@@ -16,6 +16,12 @@ public class CullHook
 {
 	public static void renderParticle(Particle particle, BufferBuilder buffer, Entity entity, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ)
 	{
+		if(!Configuration.cullInSpectator && Minecraft.getMinecraft().player.isSpectator())
+		{
+			particle.renderParticle(buffer, entity, partialTicks, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ);
+			return;
+		}
+
 		ICamera camera = ((CameraHolder)Minecraft.getMinecraft().entityRenderer).getCamera();
 
 		if(camera == null)
