@@ -40,7 +40,7 @@ public class CullHook
 			{
 				RayTraceResult result = entity.world.rayTraceBlocks(entity.getPositionVector().add(0, entity.getEyeHeight(), 0), new Vec3d(particle.posX, particle.posY, particle.posZ), false, true, true);
 
-				if(!(result == null || result.typeOfHit != RayTraceResult.Type.BLOCK))
+				if(result != null && result.typeOfHit == RayTraceResult.Type.BLOCK)
 				{
 					IBlockState state = entity.world.getBlockState(result.getBlockPos());
 
