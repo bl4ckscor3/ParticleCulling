@@ -24,7 +24,7 @@ public class CullHook
 {
 	public static void renderParticle(Particle particle, BufferBuilder buffer, Entity entity, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ)
 	{
-		if(!Configuration.cullInSpectator && Minecraft.getMinecraft().player.isSpectator())
+		if((!Configuration.cullInSpectator && Minecraft.getMinecraft().player.isSpectator()) || (ParticleCulling.IS_DSURROUND_INSTALLED && DSurroundHandler.isParticleCollection(particle)))
 		{
 			particle.renderParticle(buffer, entity, partialTicks, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ);
 			return;
