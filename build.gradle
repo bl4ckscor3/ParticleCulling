@@ -16,7 +16,7 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-version = '1.12.2-v1.0.1'
+version = '1.12.2-v1.1'
 group = 'bl4ckscor3.mod.particleculling'
 archivesBaseName = 'particleculling'
 
