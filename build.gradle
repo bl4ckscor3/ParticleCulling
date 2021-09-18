@@ -57,8 +57,12 @@ mixin {
 }
 
 shadowJar {
-    exclude 'dummyThing'
-    classifier = ''
+	dependencies {
+		include(dependency('org.spongepowered:mixin:0.8.1-SNAPSHOT'))
+	}
+	
+	exclude 'dummyThing'
+	classifier = ''
 }
 build.dependsOn(shadowJar)
 
