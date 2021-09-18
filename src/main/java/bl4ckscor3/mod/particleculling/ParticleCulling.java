@@ -2,6 +2,7 @@ package bl4ckscor3.mod.particleculling;
 
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.Config.Comment;
+import net.minecraftforge.common.config.Config.RangeInt;
 import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -25,6 +26,10 @@ public class ParticleCulling
 
 		@Comment("Set this to false to disable particle culling while being in spectator mode. This is useful to take screenshots without having particles removed.")
 		public static boolean cullInSpectator = true;
+
+		@Comment("The minimum amount of blocks behind which particles start to get culled. Only effective if \"cullBehindBlocks\" is turned on.")
+		@RangeInt(min=1, max=50)
+		public static int blockBuffer = 1;
 	}
 
 	@SubscribeEvent
