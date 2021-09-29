@@ -10,7 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-@Mod(modid=ParticleCulling.MODID, name="Particle Culling", version="1.1")
+@Mod(modid=ParticleCulling.MODID, name="Particle Culling", version="v1.2", clientSideOnly=true)
 @EventBusSubscriber(modid=ParticleCulling.MODID)
 public class ParticleCulling
 {
