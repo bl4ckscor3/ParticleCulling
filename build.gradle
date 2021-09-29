@@ -16,7 +16,7 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-version = '1.12.2-v1.1'
+version = '1.12.2-v1.2'
 group = 'bl4ckscor3.mod.particleculling'
 archivesBaseName = 'particleculling'
 
@@ -50,6 +50,7 @@ dependencies {
     compile 'org.spongepowered:mixin:0.8.1-SNAPSHOT'
     deobfCompile "curse.maven:dynamic-surroundings-238891:3098835"
     deobfCompile "curse.maven:orelib-307806:2820815"
+    deobfCompile "curse.maven:fancy-block-particles-254441:2632107"
 }
 
 mixin {

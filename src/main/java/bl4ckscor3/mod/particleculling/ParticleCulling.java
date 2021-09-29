@@ -16,6 +16,7 @@ public class ParticleCulling
 {
 	public static final String MODID = "particleculling";
 	public static final boolean IS_DSURROUND_INSTALLED = Loader.isModLoaded("dsurround");
+	public static final boolean IS_FANCY_BLOCK_PARTICLES_INSTALLED = Loader.isModLoaded("fbp");
 
 	@Config(modid=MODID)
 	public static class Configuration

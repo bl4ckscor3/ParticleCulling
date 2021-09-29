@@ -30,6 +30,8 @@ public class CullHook
 			return true;
 		else if(ParticleCulling.IS_DSURROUND_INSTALLED && DSurroundHandler.isParticleCollection(particle))
 			return true;
+		else if(ParticleCulling.IS_FANCY_BLOCK_PARTICLES_INSTALLED && FBPHandler.isBlockPlaceParticle(particle))
+			return true;
 
 		ICamera camera = ((CameraHolder)Minecraft.getMinecraft().entityRenderer).getCamera();
 
