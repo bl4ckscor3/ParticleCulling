@@ -32,6 +32,9 @@ public class ParticleCulling
 		@Comment("The minimum amount of blocks behind which particles start to get culled. Only effective if \"cullBehindBlocks\" is turned on.")
 		@RangeInt(min=1, max=50)
 		public static int blockBuffer = 1;
+
+		@Comment("Set this to false to disable all of particle culling's features.")
+		public static boolean cullingEnabled = true;
 	}
 
 	@SubscribeEvent

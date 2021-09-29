@@ -22,16 +22,18 @@ import net.minecraftforge.fml.relauncher.Side;
 @EventBusSubscriber(modid=ParticleCulling.MODID, value=Side.CLIENT)
 public class CullHook
 {
-	public static void renderParticle(Particle particle, BufferBuilder buffer, Entity entity, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ)
+	public static boolean shouldRenderParticle(Particle particle, BufferBuilder buffer, Entity entity, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ)
 	{
-		if((!Configuration.cullInSpectator && Minecraft.getMinecraft().player.isSpectator()) || (ParticleCulling.IS_DSURROUND_INSTALLED && DSurroundHandler.isParticleCollection(particle)))
-		{
-			particle.renderParticle(buffer, entity, partialTicks, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ);
-			return;
-		}
+		if(!Configuration.cullingEnabled)
+			return true;
+		else if(!Configuration.cullInSpectator && Minecraft.getMinecraft().player.isSpectator())
+			return true;
+		else if(ParticleCulling.IS_DSURROUND_INSTALLED && DSurroundHandler.isParticleCollection(particle))
+			return true;
 
 		ICamera camera = ((CameraHolder)Minecraft.getMinecraft().entityRenderer).getCamera();
 
+		//enabling shaders apparently means this is null, so the camera has to be set up again
 		if(camera == null)
 		{
 			double x = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks;
@@ -53,20 +55,22 @@ public class CullHook
 					if(result != null && result.typeOfHit == RayTraceResult.Type.BLOCK)
 					{
 						if(Configuration.cullBehindGlass)
-							return;
+							return false;
 
 						IBlockState state = entity.world.getBlockState(result.getBlockPos());
 
 						if(state.isFullCube() && state.isOpaqueCube())
-							return;
+							return false;
 					}
 				}
 				else if(shouldCull(entity.world, new Vec3d(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), new Vec3d(particle.posX, particle.posY, particle.posZ)))
-					return;
+					return false;
 			}
 
-			particle.renderParticle(buffer, entity, partialTicks, rotationX, rotationZ, rotationYZ, rotationXY, rotationXZ);
+			return true;
 		}
+
+		return false;
 	}
 
 	//adapted from World#rayTraceBlocks to be able to ray trace through blocks
