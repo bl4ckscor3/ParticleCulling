@@ -1,13 +1,21 @@
 package bl4ckscor3.mod.particleculling;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.Config.Comment;
+import net.minecraftforge.common.config.Config.Ignore;
 import net.minecraftforge.common.config.Config.RangeInt;
 import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
-import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.fml.common.Mod.EventHandler;
+import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 @Mod(modid=ParticleCulling.MODID, name="Particle Culling", version="v1.2", clientSideOnly=true)
@@ -15,8 +23,19 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 public class ParticleCulling
 {
 	public static final String MODID = "particleculling";
-	public static final boolean IS_DSURROUND_INSTALLED = Loader.isModLoaded("dsurround");
-	public static final boolean IS_FANCY_BLOCK_PARTICLES_INSTALLED = Loader.isModLoaded("fbp");
+	public static final Logger LOGGER = LogManager.getLogger(MODID);
+	public static Class<?> particleClass = null;
+
+	static {
+		try
+		{
+			particleClass = Class.forName("net.minecraft.client.particle.Particle");
+		}
+		catch(ClassNotFoundException e)
+		{
+			LOGGER.error("Could not find vanilla particle class! Something is wrong.");
+		}
+	}
 
 	@Config(modid=MODID)
 	public static class Configuration
@@ -36,12 +55,51 @@ public class ParticleCulling
 
 		@Comment("Set this to false to disable all of particle culling's features.")
 		public static boolean cullingEnabled = true;
+
+		@Comment({"Add particle classes here that should be ignored by Particle Culling.",
+		"Example: To ignore Minecraft's breaking particles and any derivates, add \"net.minecraft.client.particle.ParticleBreaking\" to the list"})
+		public static String[] ignoredParticles = {};
+
+		@Ignore
+		public static List<Class<?>> ignoredParticleClasses;
+	}
+
+	@EventHandler
+	public void onLoadComplete(FMLLoadCompleteEvent event)
+	{
+		updateIgnoredParticles();
 	}
 
 	@SubscribeEvent
 	public static void onConfigChanged(OnConfigChangedEvent event)
 	{
 		if(event.getModID().equals(MODID))
+		{
 			ConfigManager.sync(MODID, Config.Type.INSTANCE);
+			updateIgnoredParticles();
+		}
+	}
+
+	private static void updateIgnoredParticles()
+	{
+		Configuration.ignoredParticleClasses = new ArrayList<>();
+
+		for(String className : Configuration.ignoredParticles)
+		{
+			try
+			{
+				Class<?> clazz = Class.forName(className);
+
+				if(particleClass.isAssignableFrom(clazz)) //returns true if the vanilla particle class is equal to or a super class of clazz
+					Configuration.ignoredParticleClasses.add(clazz);
+				else
+					LOGGER.warn(className + " is not a particle class or does not extend the vanilla particle class!");
+
+			}
+			catch(ClassNotFoundException e)
+			{
+				LOGGER.warn("Could not find particle class " + className + "");
+			}
+		}
 	}
 }

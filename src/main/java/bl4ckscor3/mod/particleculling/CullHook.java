@@ -28,9 +28,7 @@ public class CullHook
 			return true;
 		else if(!Configuration.cullInSpectator && Minecraft.getMinecraft().player.isSpectator())
 			return true;
-		else if(ParticleCulling.IS_DSURROUND_INSTALLED && DSurroundHandler.isParticleCollection(particle))
-			return true;
-		else if(ParticleCulling.IS_FANCY_BLOCK_PARTICLES_INSTALLED && FBPHandler.isBlockPlaceParticle(particle))
+		else if(Configuration.ignoredParticleClasses.stream().anyMatch(clazz -> clazz.isAssignableFrom(particle.getClass()))) //returns true if clazz is equal to or a super class of the current particle's class
 			return true;
 
 		ICamera camera = ((CameraHolder)Minecraft.getMinecraft().entityRenderer).getCamera();
