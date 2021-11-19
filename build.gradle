@@ -3,20 +3,17 @@ buildscript {
         jcenter()
         maven { url = 'https://files.minecraftforge.net/maven' }
         maven { url = 'https://repo.spongepowered.org/maven' }
-        maven { url = 'https://plugins.gradle.org/m2' }
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
         classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
     }
 }
 
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
-apply plugin: 'com.github.johnrengelman.shadow'
 
-version = '1.12.2-v1.2'
+version = '1.12.2-v1.3'
 group = 'bl4ckscor3.mod.particleculling'
 archivesBaseName = 'particleculling'
 
@@ -47,30 +44,10 @@ repositories {
 
 dependencies {
     compile 'org.spongepowered:mixin:0.8.1-SNAPSHOT'
-    deobfCompile "curse.maven:dynamic-surroundings-238891:3098835"
-    deobfCompile "curse.maven:orelib-307806:2820815"
-    deobfCompile "curse.maven:fancy-block-particles-254441:2632107"
 }
 
 mixin {
     add sourceSets.main, 'mixins.particleculling.refmap.json'
-}
-
-shadowJar {
-	dependencies {
-		include(dependency('org.spongepowered:mixin:0.8.1-SNAPSHOT'))
-	}
-	
-	exclude 'dummyThing'
-	classifier = ''
-}
-build.dependsOn(shadowJar)
-
-reobf {
-    shadowJar {
-        mappingType = 'SEARGE'
-        classpath = sourceSets.main.compileClasspath
-    }
 }
 
 processResources {
