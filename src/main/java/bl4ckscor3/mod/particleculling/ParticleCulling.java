@@ -18,7 +18,7 @@ import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-@Mod(modid=ParticleCulling.MODID, name="Particle Culling", version="v1.2", clientSideOnly=true)
+@Mod(modid=ParticleCulling.MODID, name="Particle Culling", version="v1.3", clientSideOnly=true)
 @EventBusSubscriber(modid=ParticleCulling.MODID)
 public class ParticleCulling
 {
@@ -58,7 +58,11 @@ public class ParticleCulling
 
 		@Comment({"Add particle classes here that should be ignored by Particle Culling.",
 		"Example: To ignore Minecraft's breaking particles and any derivates, add \"net.minecraft.client.particle.ParticleBreaking\" to the list"})
-		public static String[] ignoredParticles = {};
+		public static String[] ignoredParticles = {
+				"org.orecruncher.dsurround.client.fx.particle.mote.ParticleCollection",
+				"com.TominoCZ.FBP.particle.FBPParticleBlock",
+				"xzeroair.trinkets.client.particles.ParticleGreed",
+		};
 
 		@Ignore
 		public static List<Class<?>> ignoredParticleClasses;
@@ -98,7 +102,7 @@ public class ParticleCulling
 			}
 			catch(ClassNotFoundException e)
 			{
-				LOGGER.warn("Could not find particle class " + className + "");
+				LOGGER.warn("Could not find particle class " + className + ". If the mod is not installed, this can be ignored.");
 			}
 		}
 	}
