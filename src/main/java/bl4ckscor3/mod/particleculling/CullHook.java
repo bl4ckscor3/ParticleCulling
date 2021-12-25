@@ -7,7 +7,6 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.EnumFacing;
@@ -31,18 +30,10 @@ public class CullHook
 		else if(Configuration.ignoredParticleClasses.stream().anyMatch(clazz -> clazz.isAssignableFrom(particle.getClass()))) //returns true if clazz is equal to or a super class of the current particle's class
 			return true;
 
-		ICamera camera = ((CameraHolder)Minecraft.getMinecraft().entityRenderer).getCamera();
+		ICamera camera = ((CameraHolder)Minecraft.getMinecraft().renderGlobal).getCamera();
 
-		//enabling shaders apparently means this is null, so the camera has to be set up again
 		if(camera == null)
-		{
-			double x = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks;
-			double y = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks;
-			double z = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks;
-
-			camera = new Frustum();
-			camera.setPosition(x, y, z);
-		}
+			return true;
 
 		if(camera.isBoundingBoxInFrustum(particle.getBoundingBox()))
 		{
