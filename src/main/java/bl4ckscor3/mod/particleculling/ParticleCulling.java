@@ -24,6 +24,7 @@ public class ParticleCulling {
 	public static final String MODID = "particleculling";
 	public static final Logger LOGGER = LogManager.getLogger(MODID);
 	public static Class<?> particleClass = null;
+	public static CullThread cullThread;
 
 	static {
 		try {
@@ -64,6 +65,8 @@ public class ParticleCulling {
 	@EventHandler
 	public void onLoadComplete(FMLLoadCompleteEvent event) {
 		updateIgnoredParticles();
+		cullThread = new CullThread();
+		cullThread.start();
 	}
 
 	@SubscribeEvent

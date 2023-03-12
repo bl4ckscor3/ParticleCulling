@@ -6,7 +6,6 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
-import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.EnumFacing;
@@ -15,51 +14,93 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import net.minecraftforge.fml.relauncher.Side;
 
-@EventBusSubscriber(modid = ParticleCulling.MODID, value = Side.CLIENT)
-public class CullHook {
-	public static boolean shouldRenderParticle(Particle particle, BufferBuilder buffer, Entity entity, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ) {
-		if (!Configuration.cullingEnabled)
-			return true;
-		else if (!Configuration.cullInSpectator && Minecraft.getMinecraft().player.isSpectator())
-			return true;
-		else if (Configuration.ignoredParticleClasses.stream().anyMatch(clazz -> clazz.isAssignableFrom(particle.getClass()))) //returns true if clazz is equal to or a super class of the current particle's class
-			return true;
+public class CullThread extends Thread {
+	private double sleepOverhead = 0.0D;
+
+	public CullThread() {
+		setName("Particle Culling");
+		setDaemon(true);
+	}
+
+	@Override
+	public void run() {
+		Minecraft mc = Minecraft.getMinecraft();
+
+		while (!Thread.currentThread().isInterrupted()) {
+			try {
+				long start = System.nanoTime();
+
+				if (mc.world != null) {
+					for (int i = 0; i < 4; i++) {
+						for (int j = 0; j < 2; j++) {
+							for (Particle particle : mc.effectRenderer.fxLayers[i][j]) {
+								((CullCheck) particle).setCulled(shouldCullParticle(particle, mc));
+							}
+						}
+					}
+				}
+
+				double d = (System.nanoTime() - start) / 1_000_000.0D + sleepOverhead;
+				long sleepTime = 10 - (long) d;
+
+				sleepOverhead = d % 1.0D;
+
+				if (sleepTime > 0)
+					Thread.sleep(sleepTime);
+			}
+			catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+			}
+			catch (Exception e) {} //TODO: actually fix the CME in the fxLayers loop
+		}
+	}
+
+	private boolean shouldCullParticle(Particle particle, Minecraft mc) {
+		if (!Configuration.cullingEnabled || !Configuration.cullInSpectator && Minecraft.getMinecraft().player.isSpectator())
+			return false;
 
 		ICamera camera = ((CameraHolder) Minecraft.getMinecraft().renderGlobal).getCamera();
 
 		if (camera == null)
-			return true;
+			return false;
+
+		for (Class<?> ignoredParticleClass : Configuration.ignoredParticleClasses) {
+			if (ignoredParticleClass.isAssignableFrom(particle.getClass())) //returns true if ignoredParticleClass is equal to or a super class of the current particle's class
+				return false;
+		}
 
 		if (camera.isBoundingBoxInFrustum(particle.getBoundingBox())) {
 			if (Configuration.cullBehindBlocks) {
-				if (Configuration.blockBuffer == 1) {
-					RayTraceResult result = entity.world.rayTraceBlocks(new Vec3d(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), new Vec3d(particle.posX, particle.posY, particle.posZ), false, true, true);
+				Entity entity = mc.getRenderViewEntity();
 
-					if (result != null && result.typeOfHit == RayTraceResult.Type.BLOCK) {
-						if (Configuration.cullBehindGlass)
-							return false;
+				if (entity != null) {
+					if (Configuration.blockBuffer == 1) {
+						RayTraceResult result = entity.world.rayTraceBlocks(new Vec3d(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), new Vec3d(particle.posX, particle.posY, particle.posZ), false, true, true);
 
-						IBlockState state = entity.world.getBlockState(result.getBlockPos());
+						if (result != null && result.typeOfHit == RayTraceResult.Type.BLOCK) {
+							if (Configuration.cullBehindGlass)
+								return true;
 
-						if (state.isFullCube() && state.isOpaqueCube())
-							return false;
+							IBlockState state = entity.world.getBlockState(result.getBlockPos());
+
+							if (state.isFullCube() && state.isOpaqueCube())
+								return true;
+						}
 					}
+					else if (shouldCull(entity.world, new Vec3d(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), new Vec3d(particle.posX, particle.posY, particle.posZ)))
+						return true;
 				}
-				else if (shouldCull(entity.world, new Vec3d(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), new Vec3d(particle.posX, particle.posY, particle.posZ)))
-					return false;
 			}
 
-			return true;
+			return false;
 		}
 
-		return false;
+		return true;
 	}
 
 	//adapted from World#rayTraceBlocks to be able to ray trace through blocks
-	public static boolean shouldCull(World world, Vec3d from, Vec3d to) {
+	private boolean shouldCull(World world, Vec3d from, Vec3d to) {
 		if (!Double.isNaN(from.x) && !Double.isNaN(from.y) && !Double.isNaN(from.z) && !Double.isNaN(to.x) && !Double.isNaN(to.y) && !Double.isNaN(to.z)) {
 			boolean opacityCheck = false;
 			int blocks = 0;
