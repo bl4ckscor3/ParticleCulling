@@ -18,43 +18,37 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.relauncher.Side;
 
-@EventBusSubscriber(modid=ParticleCulling.MODID, value=Side.CLIENT)
-public class CullHook
-{
-	public static boolean shouldRenderParticle(Particle particle, BufferBuilder buffer, Entity entity, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ)
-	{
-		if(!Configuration.cullingEnabled)
+@EventBusSubscriber(modid = ParticleCulling.MODID, value = Side.CLIENT)
+public class CullHook {
+	public static boolean shouldRenderParticle(Particle particle, BufferBuilder buffer, Entity entity, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ) {
+		if (!Configuration.cullingEnabled)
 			return true;
-		else if(!Configuration.cullInSpectator && Minecraft.getMinecraft().player.isSpectator())
+		else if (!Configuration.cullInSpectator && Minecraft.getMinecraft().player.isSpectator())
 			return true;
-		else if(Configuration.ignoredParticleClasses.stream().anyMatch(clazz -> clazz.isAssignableFrom(particle.getClass()))) //returns true if clazz is equal to or a super class of the current particle's class
+		else if (Configuration.ignoredParticleClasses.stream().anyMatch(clazz -> clazz.isAssignableFrom(particle.getClass()))) //returns true if clazz is equal to or a super class of the current particle's class
 			return true;
 
-		ICamera camera = ((CameraHolder)Minecraft.getMinecraft().renderGlobal).getCamera();
+		ICamera camera = ((CameraHolder) Minecraft.getMinecraft().renderGlobal).getCamera();
 
-		if(camera == null)
+		if (camera == null)
 			return true;
 
-		if(camera.isBoundingBoxInFrustum(particle.getBoundingBox()))
-		{
-			if(Configuration.cullBehindBlocks)
-			{
-				if(Configuration.blockBuffer == 1)
-				{
+		if (camera.isBoundingBoxInFrustum(particle.getBoundingBox())) {
+			if (Configuration.cullBehindBlocks) {
+				if (Configuration.blockBuffer == 1) {
 					RayTraceResult result = entity.world.rayTraceBlocks(new Vec3d(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), new Vec3d(particle.posX, particle.posY, particle.posZ), false, true, true);
 
-					if(result != null && result.typeOfHit == RayTraceResult.Type.BLOCK)
-					{
-						if(Configuration.cullBehindGlass)
+					if (result != null && result.typeOfHit == RayTraceResult.Type.BLOCK) {
+						if (Configuration.cullBehindGlass)
 							return false;
 
 						IBlockState state = entity.world.getBlockState(result.getBlockPos());
 
-						if(state.isFullCube() && state.isOpaqueCube())
+						if (state.isFullCube() && state.isOpaqueCube())
 							return false;
 					}
 				}
-				else if(shouldCull(entity.world, new Vec3d(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), new Vec3d(particle.posX, particle.posY, particle.posZ)))
+				else if (shouldCull(entity.world, new Vec3d(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), new Vec3d(particle.posX, particle.posY, particle.posZ)))
 					return false;
 			}
 
@@ -65,10 +59,8 @@ public class CullHook
 	}
 
 	//adapted from World#rayTraceBlocks to be able to ray trace through blocks
-	public static boolean shouldCull(World world, Vec3d from, Vec3d to)
-	{
-		if(!Double.isNaN(from.x) && !Double.isNaN(from.y) && !Double.isNaN(from.z) && !Double.isNaN(to.x) && !Double.isNaN(to.y) && !Double.isNaN(to.z))
-		{
+	public static boolean shouldCull(World world, Vec3d from, Vec3d to) {
+		if (!Double.isNaN(from.x) && !Double.isNaN(from.y) && !Double.isNaN(from.z) && !Double.isNaN(to.x) && !Double.isNaN(to.y) && !Double.isNaN(to.z)) {
 			boolean opacityCheck = false;
 			int blocks = 0;
 			int toX = MathHelper.floor(to.x);
@@ -81,17 +73,15 @@ public class CullHook
 			IBlockState state = world.getBlockState(pos);
 			Block block = state.getBlock();
 
-			if(state.getCollisionBoundingBox(world, pos) != Block.NULL_AABB && block.canCollideCheck(state, false) && state.collisionRayTrace(world, pos, from, to) != null)
-			{
+			if (state.getCollisionBoundingBox(world, pos) != Block.NULL_AABB && block.canCollideCheck(state, false) && state.collisionRayTrace(world, pos, from, to) != null) {
 				blocks++;
 				opacityCheck = opacityCheck || Configuration.cullBehindGlass || (state.isFullCube() && state.isOpaqueCube());
 			}
 
 			int maxIterations = 50;
 
-			while(maxIterations-- >= 0)
-			{
-				if(checkX == toX && checkY == toY && checkZ == toZ)
+			while (maxIterations-- >= 0) {
+				if (checkX == toX && checkY == toY && checkZ == toZ)
 					return opacityCheck && (++blocks > Configuration.blockBuffer);
 
 				boolean wasXChanged = true;
@@ -101,23 +91,23 @@ public class CullHook
 				double d1 = 999.0D;
 				double d2 = 999.0D;
 
-				if(toX > checkX)
+				if (toX > checkX)
 					d0 = checkX + 1.0D;
-				else if(toX < checkX)
+				else if (toX < checkX)
 					d0 = checkX + 0.0D;
 				else
 					wasXChanged = false;
 
-				if(toY > checkY)
+				if (toY > checkY)
 					d1 = checkY + 1.0D;
-				else if(toY < checkY)
+				else if (toY < checkY)
 					d1 = checkY + 0.0D;
 				else
 					wasYChanged = false;
 
-				if(toZ > checkZ)
+				if (toZ > checkZ)
 					d2 = checkZ + 1.0D;
-				else if(toZ < checkZ)
+				else if (toZ < checkZ)
 					d2 = checkZ + 0.0D;
 				else
 					wasZChanged = false;
@@ -129,42 +119,39 @@ public class CullHook
 				double d7 = to.y - from.y;
 				double d8 = to.z - from.z;
 
-				if(wasXChanged)
+				if (wasXChanged)
 					d3 = (d0 - from.x) / d6;
 
-				if(wasYChanged)
+				if (wasYChanged)
 					d4 = (d1 - from.y) / d7;
 
-				if(wasZChanged)
+				if (wasZChanged)
 					d5 = (d2 - from.z) / d8;
 
-				if(d3 == -0.0D)
+				if (d3 == -0.0D)
 					d3 = -1.0E-4D;
 
-				if(d4 == -0.0D)
+				if (d4 == -0.0D)
 					d4 = -1.0E-4D;
 
-				if(d5 == -0.0D)
+				if (d5 == -0.0D)
 					d5 = -1.0E-4D;
 
 				EnumFacing facing;
 
-				if(d3 < d4 && d3 < d5)
-				{
+				if (d3 < d4 && d3 < d5) {
 					facing = toX > checkX ? EnumFacing.WEST : EnumFacing.EAST;
 					from.x = d0;
 					from.y += d7 * d3;
 					from.z += d8 * d3;
 				}
-				else if(d4 < d5)
-				{
+				else if (d4 < d5) {
 					facing = toY > checkY ? EnumFacing.DOWN : EnumFacing.UP;
 					from.x += d6 * d4;
 					from.y = d1;
 					from.z += d8 * d4;
 				}
-				else
-				{
+				else {
 					facing = toZ > checkZ ? EnumFacing.NORTH : EnumFacing.SOUTH;
 					from.x += d6 * d5;
 					from.y += d7 * d5;
@@ -178,11 +165,10 @@ public class CullHook
 				state = world.getBlockState(pos);
 				block = state.getBlock();
 
-				if(state.getMaterial() == Material.PORTAL || state.getCollisionBoundingBox(world, pos) != Block.NULL_AABB && block.canCollideCheck(state, false) && state.collisionRayTrace(world, pos, from, to) != null)
-				{
+				if (state.getMaterial() == Material.PORTAL || state.getCollisionBoundingBox(world, pos) != Block.NULL_AABB && block.canCollideCheck(state, false) && state.collisionRayTrace(world, pos, from, to) != null) {
 					opacityCheck = opacityCheck || Configuration.cullBehindGlass || (state.isFullCube() && state.isOpaqueCube());
 
-					if(++blocks > Configuration.blockBuffer)
+					if (++blocks > Configuration.blockBuffer)
 						return opacityCheck;
 				}
 			}

@@ -12,20 +12,17 @@ import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.entity.Entity;
 
 @Mixin(RenderGlobal.class)
-public class MixinRenderGlobal implements CameraHolder
-{
+public class MixinRenderGlobal implements CameraHolder {
 	@Unique
 	private ICamera camera;
 
-	@Inject(method="setupTerrain", at=@At("HEAD"))
-	private void setCamera(Entity viewEntity, double partialTicks, ICamera camera, int frameCount, boolean playerSpectator, CallbackInfo callback)
-	{
+	@Inject(method = "setupTerrain", at = @At("HEAD"))
+	private void setCamera(Entity viewEntity, double partialTicks, ICamera camera, int frameCount, boolean playerSpectator, CallbackInfo callback) {
 		this.camera = camera;
 	}
 
 	@Override
-	public ICamera getCamera()
-	{
+	public ICamera getCamera() {
 		return camera;
 	}
 }
