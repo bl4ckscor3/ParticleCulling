@@ -1,5 +1,12 @@
 package bl4ckscor3.mod.particleculling;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+
 import bl4ckscor3.mod.particleculling.ParticleCulling.Configuration;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -17,6 +24,7 @@ import net.minecraft.world.World;
 
 public class CullThread extends Thread {
 	private double sleepOverhead = 0.0D;
+	private final List<Particle> temporaryParticleStorage = new ArrayList<>();
 
 	public CullThread() {
 		setName("Particle Culling");
@@ -34,9 +42,7 @@ public class CullThread extends Thread {
 				if (mc.world != null) {
 					for (int i = 0; i < 4; i++) {
 						for (int j = 0; j < 2; j++) {
-							for (Particle particle : mc.effectRenderer.fxLayers[i][j]) {
-								((CullCheck) particle).setCulled(shouldCullParticle(particle, mc));
-							}
+							iterateParticles(mc, mc.effectRenderer.fxLayers[i][j]);
 						}
 					}
 				}
@@ -52,15 +58,42 @@ public class CullThread extends Thread {
 			catch (InterruptedException ex) {
 				Thread.currentThread().interrupt();
 			}
-			catch (Exception e) {} //TODO: actually fix the CME in the fxLayers loop
+		}
+	}
+
+	//thanks to Meldexun, minimizes CMEs and NSEEs when iterating over an fx layer
+	private void iterateParticles(Minecraft mc, ArrayDeque<Particle> deque) {
+		try {
+			Iterator<Particle> iterator = deque.iterator();
+
+			while (iterator.hasNext()) {
+				Particle particle;
+
+				try {
+					particle = iterator.next();
+				}
+				catch (ConcurrentModificationException | NoSuchElementException e) {
+					break; //break the loop, as continuing it would just lead to more exceptions as the list backing the iterator got changed
+				}
+
+				if (particle != null)
+					temporaryParticleStorage.add(particle);
+			}
+
+			for (Particle particle : temporaryParticleStorage) {
+				((CullCheck) particle).setCulled(shouldCullParticle(particle, mc));
+			}
+		}
+		finally {
+			temporaryParticleStorage.clear();
 		}
 	}
 
 	private boolean shouldCullParticle(Particle particle, Minecraft mc) {
-		if (!Configuration.cullingEnabled || !Configuration.cullInSpectator && Minecraft.getMinecraft().player.isSpectator())
+		if (!Configuration.cullingEnabled || !Configuration.cullInSpectator && mc.player.isSpectator())
 			return false;
 
-		ICamera camera = ((CameraHolder) Minecraft.getMinecraft().renderGlobal).getCamera();
+		ICamera camera = ((CameraHolder) mc.renderGlobal).getCamera();
 
 		if (camera == null)
 			return false;
