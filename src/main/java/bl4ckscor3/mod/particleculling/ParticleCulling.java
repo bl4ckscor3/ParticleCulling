@@ -18,7 +18,7 @@ import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-@Mod(modid = ParticleCulling.MODID, name = "Particle Culling", version = "v1.3", clientSideOnly = true)
+@Mod(modid = ParticleCulling.MODID, name = "Particle Culling", version = "v1.4.1", clientSideOnly = true)
 @EventBusSubscriber(modid = ParticleCulling.MODID)
 public class ParticleCulling {
 	public static final String MODID = "particleculling";

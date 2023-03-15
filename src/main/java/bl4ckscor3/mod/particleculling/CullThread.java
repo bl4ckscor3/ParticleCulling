@@ -18,7 +18,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -107,23 +106,8 @@ public class CullThread extends Thread {
 			if (Configuration.cullBehindBlocks) {
 				Entity entity = mc.getRenderViewEntity();
 
-				if (entity != null) {
-					if (Configuration.blockBuffer == 1) {
-						RayTraceResult result = entity.world.rayTraceBlocks(new Vec3d(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), new Vec3d(particle.posX, particle.posY, particle.posZ), false, true, true);
-
-						if (result != null && result.typeOfHit == RayTraceResult.Type.BLOCK) {
-							if (Configuration.cullBehindGlass)
-								return true;
-
-							IBlockState state = entity.world.getBlockState(result.getBlockPos());
-
-							if (state.isFullCube() && state.isOpaqueCube())
-								return true;
-						}
-					}
-					else if (shouldCull(entity.world, new Vec3d(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), new Vec3d(particle.posX, particle.posY, particle.posZ)))
-						return true;
-				}
+				if (entity != null)
+					return shouldCull(entity.world, new Vec3d(entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ), new Vec3d(particle.posX, particle.posY, particle.posZ));
 			}
 
 			return false;
